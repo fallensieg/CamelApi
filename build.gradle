@@ -34,12 +34,22 @@ dependencies {
     implementation "org.apache.camel.springboot:camel-spring-boot-starter:$springBootVersion"
     // https://mvnrepository.com/artifact/org.apache.camel.springboot/camel-rest-starter
     implementation "org.apache.camel.springboot:camel-rest-starter:$springBootVersion"
+    implementation "org.apache.camel.springboot:camel-openapi-java-starter:$springBootVersion"
 
     // https://mvnrepository.com/artifact/org.apache.camel.springboot/camel-rest-starter
     implementation "org.apache.camel.springboot:camel-servlet-starter:$springBootVersion"
 
-    // https://mvnrepository.com/artifact/org.apache.camel.springboot/camel-jackson-starter
-    implementation "org.apache.camel.springboot:camel-jackson-starter:$springBootVersion"
+
+
+
+    // https://mvnrepository.com/artifact/org.apache.camel.springboot/camel-fhir-starter
+    implementation "org.apache.camel.springboot:camel-fhir-starter:$springBootVersion"
+
+    //FHIR
+    // https://mvnrepository.com/artifact/ca.uhn.hapi.fhir/hapi-fhir-structures-r4
+    implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.4.4'
+
+
 }
 
 test {

@@ -4,7 +4,8 @@ import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.stereotype.Component;
 
-@Component
+//uncomment next line if you want the service to write to the console that it is online every 10 seconds.
+//@Component
 public class ActivityCheck extends RouteBuilder {
 
     @Override
