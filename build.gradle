@@ -39,8 +39,8 @@ dependencies {
     // https://mvnrepository.com/artifact/org.apache.camel.springboot/camel-rest-starter
     implementation "org.apache.camel.springboot:camel-servlet-starter:$springBootVersion"
 
-
-
+    // https://mvnrepository.com/artifact/org.apache.camel/camel-jackson-starter
+    implementation "org.apache.camel.springboot:camel-jackson-starter:$springBootVersion"
 
     // https://mvnrepository.com/artifact/org.apache.camel.springboot/camel-fhir-starter
     implementation "org.apache.camel.springboot:camel-fhir-starter:$springBootVersion"
