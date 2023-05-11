@@ -3,17 +3,17 @@ package uk.co.joshjordan.camel.routes;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.apache.camel.model.dataformat.JsonLibrary;
-import org.apache.camel.model.rest.RestBindingMode;
-import org.apache.camel.model.rest.RestConfigurationDefinition;
-import org.apache.camel.model.rest.RestParamType;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.springframework.stereotype.Component;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.joshjordan.camel.beans.CreateReferralBean;
 import uk.co.joshjordan.camel.entities.CreateReferralResponse;
+import uk.co.joshjordan.camel.entities.Referral;
 
 @Component
 public class CreateReferral extends RouteBuilder {
@@ -22,64 +22,43 @@ public class CreateReferral extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        onException()
-                .log("### Exception Caught ###")
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
-                .log("${exception.stacktrace}")
-                .to("log:logger?showAll=true")
-                .setBody(simple("Message: An Error Has Occurred! ${exception.message}"))
-                .handled(true);
-
-        onException(org.apache.camel.component.bean.MethodNotFoundException.class)
-                .log("### Exception Caught ###")
-                .to("log:logger?showAll=true")
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(400))
-                //.log("${exception.stacktrace}")
-                .setBody(simple("Error Response: ${exception.message}"))
-                .handled(true);
-
-        RestConfigurationDefinition restConfiguration = restConfiguration();
-            restConfiguration.component("servlet")
-                    .bindingMode(RestBindingMode.off)
-                    .contextPath("/api")
-                    .port(8080)
-                    .enableCORS(true)
-                    .apiContextPath("/api-docs")
-                    .dataFormatProperty("prettyPrint", "true")
-                    .apiProperty("api.title", "My REST API")
-                    .apiProperty("api.version", "1.0");
-
-        rest()
-
-                .consumes("application/fhir+json")
-                .produces("application/json")
-
-                .post("/createReferral")
-                    .outType(CreateReferralResponse.class)
-                    .description("Create a new FHIR ServiceRequest Bundle")
-                    .param()
-                        .name("body")
-                        .type(RestParamType.body)
-                        .description("The FHIR ServiceRequest Bundle to create")
-                    .endParam()
-                    .to("direct:createServiceRequest")
-
-
-                .get("/getReferral/{id}")
-                .outType(ServiceRequest.class)
-                .description("Create a new FHIR ServiceRequest Bundle")
-                .to("direct:getReferral");
-
-
-
-
         from("direct:createServiceRequest")
-            .to("direct:createReferral")
-            .process(new Processor() {
+            .routeId("createReferral")
+            //.bean(CreateReferralBean.class, "AddToArrayList('referralArrayList')")
+            .log(LoggingLevel.INFO, logger, "Referral has been stored")
+            .convertBodyTo(String.class)
+            .process(new Processor() { //this should be moved to a separate bean
+                @Override
+                public void process(Exchange exchange) throws Exception {
+
+                    String serviceRequestString = exchange.getIn().getBody(String.class);
+
+                    FhirContext fhirContext = FhirContext.forR4();
+                    IParser parser = fhirContext.newJsonParser();
+                    ServiceRequest request = parser.parseResource(ServiceRequest.class, serviceRequestString);
+
+                    String patientId = request.getIdentifier().get(0).getValue();
+                    String patientIdOid = request.getIdentifier().get(0).getSystem();
+                    String referralId = request.getId();
+                    String referralStatus = request.getStatus().toString();
+
+                    exchange.getMessage().setHeader("PatientId", patientId);
+                    exchange.getMessage().setHeader("PatientIdOid", patientIdOid);
+                    exchange.getMessage().setHeader("ReferralId", referralId);
+                    exchange.getMessage().setHeader("Status", referralStatus);
+
+                    Api.getReferralArrayList().add(new Referral(referralId,patientId,patientIdOid,referralStatus, request));
+                    logger.info("Referral Stored: " + referralId);
+                }
+            })
+            .log(LoggingLevel.INFO, logger, "Headers have been set")
+            .process(new Processor() { //this should be moved to a separate bean
                 @Override
                 public void process(Exchange exchange) throws Exception {
                     CreateReferralResponse createReferralResponse = new CreateReferralResponse();
                     createReferralResponse.setReferralId(exchange.getMessage().getHeader("ReferralId", String.class));
+                    createReferralResponse.setPatientId(exchange.getMessage().getHeader("PatientId", String.class));
+                    createReferralResponse.setPatientIdOid(exchange.getMessage().getHeader("PatientIdOid", String.class));
                     createReferralResponse.setMessage("Referral has been saved.");
                     exchange.getMessage().setBody(createReferralResponse);
                 }
@@ -88,8 +67,6 @@ public class CreateReferral extends RouteBuilder {
             .marshal().json(JsonLibrary.Jackson)
         .end();
 
-        from("direct:getReferral")
-                .to("direct:getReferral");
     }
 
 }

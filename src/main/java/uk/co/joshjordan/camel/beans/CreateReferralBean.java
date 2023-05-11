@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 @Component
 public class CreateReferralBean {
-    public ArrayList<Referral> AddToArrayList(ArrayList<Referral> referralArrayList){
+/*    public ArrayList<Referral> AddToArrayList(ArrayList<Referral> referralArrayList){
         Referral referral = new Referral();
         referral.setPatientId("");
         referral.setPatientIdOid("");
@@ -18,5 +18,5 @@ public class CreateReferralBean {
         referralArrayList.add(referral);
 
         return referralArrayList;
-    }
+    }*/
 }

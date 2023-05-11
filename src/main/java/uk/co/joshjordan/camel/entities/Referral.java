@@ -1,5 +1,6 @@
 package uk.co.joshjordan.camel.entities;
 
+import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.ServiceRequest;
 
 public class Referral {
@@ -9,7 +10,16 @@ public class Referral {
     private String PatientIdOid;
     private String Status;
 
-    private ServiceRequest serviceRequest;
+    private ServiceRequest ServiceRequest;
+
+    public Referral(String referralId, String patientId, String patientIdOid, String status, ServiceRequest serviceRequest){
+
+        ReferralId = referralId;
+        PatientId = patientId;
+        PatientIdOid = patientIdOid;
+        Status = status;
+        ServiceRequest = serviceRequest;
+    }
 
     public String getReferralId() {
         return ReferralId;
@@ -44,10 +54,10 @@ public class Referral {
     }
 
     public ServiceRequest getServiceRequest() {
-        return serviceRequest;
+        return ServiceRequest;
     }
 
     public void setServiceRequest(ServiceRequest serviceRequest) {
-        this.serviceRequest = serviceRequest;
+        this.ServiceRequest = serviceRequest;
     }
 }
